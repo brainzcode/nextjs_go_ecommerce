@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/anthdm/weavebox"
 	"github.com/brainzcode/nextjs_go_ecommerce/api"
@@ -10,8 +11,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+func handleAPIError(ctx *weavebox.Context, err error) {
+	fmt.Println(err)
+}
+
 func main() {
 	app := weavebox.New()
+	app.ErrorHandler = handleAPIError
 
 	adminRoute := app.Box("/admin")
 
@@ -20,10 +26,10 @@ func main() {
 		panic(err)
 	}
 
-	productStore := store.NewMongoProductStore(client)
+	productStore := store.NewMongoProductStore(client.Database("nextjs_go_ecommerce"))
 	productHandler := api.NewProductHandler(productStore)
 
-	adminRoute.Get("/product", productHandler.HandleGetProduct)
+	adminRoute.Get("/product/:id", productHandler.HandleGetProductByID)
 
 	adminRoute.Post("/product", productHandler.HandlePostProduct)
 
